@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinTrackker</title>
+    <link rel="stylesheet" href="/styles.css?v=2" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <section id="loginView" class="login-card">
+        <div class="auth-hero">
+          <p class="eyebrow">Welcome back</p>
+          <h1>FinTrackker</h1>
+          <p class="hero-copy">Take control of your income, expenses, and savings with a calm, clear dashboard.</p>
+        </div>
+
+        <div class="auth-toggle" role="tablist" aria-label="Authentication mode">
+          <button type="button" class="toggle-btn active" data-mode="login">Login</button>
+          <button type="button" class="toggle-btn" data-mode="register">Register</button>
+        </div>
+
+        <form id="loginForm" class="stacked-form auth-form">
+          <label>
+            Name
+            <input name="name" type="text" placeholder="Your name" />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" placeholder="Enter password" required />
+          </label>
+          <button type="submit" id="authSubmitBtn">Login</button>
+        </form>
+        <p id="loginMessage" class="message"></p>
+      </section>
+
+      <div id="appView" hidden>
+        <div class="dashboard-shell">
+          <aside class="sidebar">
+            <div>
+              <p class="eyebrow">FinTrackker</p>
+              <h2>Menu</h2>
+            </div>
+            <nav class="nav-links">
+              <button type="button" class="nav-link active" data-view="overview">Overview</button>
+              <button type="button" class="nav-link" data-view="transactions">Transactions</button>
+              <button type="button" class="nav-link" data-view="budgets">Budgets</button>
+              <button type="button" class="nav-link" data-view="reports">Reports</button>
+            </nav>
+
+            <div class="account-card">
+              <button type="button" id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+          </aside>
+
+          <div class="dashboard-main">
+            <header class="hero">
+              <div>
+                <p class="eyebrow">Personal Finance Tracker</p>
+                <h1>Understand where your money goes.</h1>
+                <p class="hero-copy">Track income, expenses, budgets, and spending patterns in one place.</p>
+              </div>
+              <div class="summary-grid overview-only-widget" id="summaryGrid"></div>
+            </header>
+
+            <main class="content-grid">
+              <section id="view-overview" class="view-section active">
+                <section class="panel overview-only-panel">
+                  <h2>Spending by category</h2>
+                  <div id="categoryChart" class="chart"></div>
+                  <div id="categoryGraph" class="graph-bars" aria-label="Spending graph"></div>
+                </section>
+
+                <section class="panel overview-only-panel">
+                  <h2>Allocated budget</h2>
+                  <div id="budgetSummaryList" class="list-stack"></div>
+                </section>
+
+                <section class="panel overview-only-panel">
+                  <h2>Recent transactions</h2>
+                  <div id="recentTransactionsList" class="list-stack"></div>
+                </section>
+
+                <section class="panel overview-only-panel">
+                  <h2>Savings trend</h2>
+                  <div id="savingsGraph" class="savings-graph" aria-label="Savings graph"></div>
+                </section>
+              </section>
+
+              <section id="view-transactions" class="view-section">
+                <section class="panel">
+                  <div class="section-header">
+                    <h2>Recent transactions</h2>
+                    <form id="filterForm" class="inline-form">
+                      <select name="type">
+                        <option value="">All</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                      </select>
+                      <select name="categoryId">
+                        <option value="">All categories</option>
+                      </select>
+                      <input name="startDate" type="date" />
+                      <input name="endDate" type="date" />
+                      <button type="submit">Apply</button>
+                    </form>
+                  </div>
+                  <div id="transactionsList" class="list-stack"></div>
+                </section>
+              </section>
+
+              <section id="view-budgets" class="view-section">
+                <section class="panel">
+                  <div class="section-header">
+                    <h2>Budget overview</h2>
+                    <form id="budgetForm" class="inline-form">
+                      <select name="categoryId" id="budgetCategory" required></select>
+                      <input name="limitAmount" type="number" min="0" step="0.01" placeholder="Limit" required />
+                      <input name="month" type="month" required />
+                      <button type="submit">Save budget</button>
+                    </form>
+                  </div>
+                  <div id="budgetsList" class="list-stack"></div>
+                </section>
+              </section>
+
+              <section id="view-reports" class="view-section">
+                <section class="panel">
+                  <h2>Reports</h2>
+                  <p class="hero-copy">Your monthly insights and trend snapshots will appear here soon.</p>
+                </section>
+              </section>
+            </main>
+
+            <div class="fab-wrap overview-only-widget">
+              <button type="button" id="addTransactionFab" class="fab-btn">+ Add transaction</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="transactionModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Add transaction</h3>
+          <button type="button" id="closeTransactionModal" class="icon-btn" aria-label="Close">×</button>
+        </div>
+        <form id="transactionForm" class="stacked-form">
+          <label>
+            Type
+            <select name="type" required>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </label>
+          <label>
+            Category
+            <select name="categoryId" id="transactionCategory" required></select>
+          </label>
+          <label>
+            Amount
+            <input name="amount" type="number" min="0" step="0.01" required />
+          </label>
+          <label>
+            Date
+            <input name="date" type="date" required />
+          </label>
+          <label>
+            Description
+            <input name="description" type="text" placeholder="Groceries, salary, etc." />
+          </label>
+          <button type="submit">Save transaction</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="/app.js?v=2"></script>
+  </body>
+</html>
