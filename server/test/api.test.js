@@ -1,13 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { app } from '../src/index.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const dataFile = path.resolve(__dirname, '../data/app-data.json');
+import { query } from '../src/db.js';
 
 let server;
 
@@ -47,7 +41,7 @@ test('login returns a valid token for an existing user', async () => {
   assert.ok(loginBody.token);
 });
 
-test('can create and list categories', async () => {
+test('new users get default categories and can add more', async () => {
   const registerResponse = await request('/api/auth/register', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -55,6 +49,14 @@ test('can create and list categories', async () => {
   });
   assert.equal(registerResponse.status, 201);
   const auth = await registerResponse.json();
+
+  const initialListResponse = await request('/api/categories', {
+    headers: { authorization: `Bearer ${auth.token}` }
+  });
+  assert.equal(initialListResponse.status, 200);
+  const initialBody = await initialListResponse.json();
+  assert.ok(initialBody.some((category) => category.name === 'Food'));
+  assert.ok(initialBody.some((category) => category.name === 'Travel'));
 
   const createResponse = await request('/api/categories', {
     method: 'POST',
@@ -225,9 +227,7 @@ test('dashboard category-wise returns expense breakdown', async () => {
   assert.ok(Array.isArray(body));
 });
 
-test('register persists users to disk', async () => {
-  await fs.rm(dataFile, { force: true });
-
+test('register persists users to the database', async () => {
   const registerResponse = await request('/api/auth/register', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -235,8 +235,9 @@ test('register persists users to disk', async () => {
   });
   assert.equal(registerResponse.status, 201);
 
-  const stored = JSON.parse(await fs.readFile(dataFile, 'utf8'));
-  assert.ok(stored.users.some((user) => user.email === 'persist@example.com'));
+  const stored = await query('SELECT email FROM users WHERE email = ?', ['persist@example.com']);
+  assert.equal(stored.length, 1);
+  assert.equal(stored[0].email, 'persist@example.com');
 });
 
 test.after(async () => {
